@@ -42,7 +42,8 @@ export default class Projectile {
     // to store the weapon id for later lookup.
     this.body = Matter.Bodies.circle(position.x, position.y, radius, {
       restitution: 0.2,
-      friction: 0.1,
+      friction: 0.05,
+      frictionAir: 0.002,
       density: 0.01,
       label: 'projectile'
     });
