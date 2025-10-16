@@ -44,6 +44,31 @@ const GameEngine: React.FC = () => {
   const increaseAmmo = useGameStore((state) => state.increaseAmmo);
   const setupCompleted = useGameStore((state) => state.setupCompleted);
 
+  // Ensure players exist when needed. Useful if the engine initialisation
+  // was delayed or the component mounted before units were ready.
+  const ensurePlayers = () => {
+    if (playersRef.current.length > 0) return true;
+    const app = appRef.current;
+    const engine = engineRef.current;
+    if (!app || !engine) return false;
+    if (!units || units.length === 0) return false;
+    const terrain = terrainRef.current ?? new Terrain(app, engine);
+    terrainRef.current = terrain;
+    const margin = 200;
+    const created: Player[] = units.map((unit, idx) => {
+      const facing: 1 | -1 = idx % 2 === 0 ? 1 : -1;
+      const x = idx % 2 === 0 ? margin : app.renderer.width - margin;
+      const ground = terrain.getHeightAt(x) || 0;
+      const y = Math.max(120, app.renderer.height - ground - 100);
+      const p = new Player(app, engine, unit as any);
+      p.root.position.set(x, y);
+      p.root.scale.x = facing;
+      return p;
+    });
+    playersRef.current = created;
+    return created.length > 0;
+  };
+
   /**
    * Initialise the PixiJS renderer and Matter.js world whenever the
    * unit roster changes (e.g. after team selection). This effect also
@@ -87,7 +112,8 @@ const GameEngine: React.FC = () => {
     const createdPlayers: Player[] = units.map((unit, idx) => {
       const facing: 1 | -1 = idx % 2 === 0 ? 1 : -1;
       const x = idx % 2 === 0 ? margin : app.renderer.width - margin;
-      const y = app.renderer.height - terrain.getHeightAt(x) - 100;
+      const ground = terrain.getHeightAt(x) || 0;
+      const y = Math.max(120, app.renderer.height - ground - 100);
       const p = new Player(app, engine, unit, { x, y, facing });
       // Visually mirror left/right by flipping container scale
       p.root.scale.x = facing;
@@ -317,6 +343,7 @@ const GameEngine: React.FC = () => {
     const engine = engineRef.current;
     if (!app || !engine) { console.log('Abort fire: app/engine not ready'); setFiring(false); return; }
     const stateNow = useGameStore.getState();
+    if (playersRef.current.length === 0) ensurePlayers();
     const currentPlayer = playersRef.current[stateNow.currentTurn];
     if (!currentPlayer || !currentPlayer.isAlive) { console.log('Abort fire: no current player'); setFiring(false); return; }
     // Resolve the selected weapon definition
