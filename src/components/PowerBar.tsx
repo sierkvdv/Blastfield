@@ -20,7 +20,7 @@ const PowerBar: React.FC = () => {
         <input
           type="range"
           min="0"
-          max="90"
+          max="180"
           value={angle}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAngle(parseFloat(e.target.value))}
         />

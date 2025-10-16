@@ -74,12 +74,15 @@ const GameEngine: React.FC = () => {
     // Spawn players on opposing sides. Index 0 and 2 spawn on the left
     // facing right; index 1 and 3 spawn on the right facing left. A
     // margin keeps them away from the edges.
-    const margin = 120;
+    const margin = 200;
     const createdPlayers: Player[] = units.map((unit, idx) => {
       const facing: 1 | -1 = idx % 2 === 0 ? 1 : -1;
       const x = idx % 2 === 0 ? margin : app.renderer.width - margin;
       const y = app.renderer.height - terrain.getHeightAt(x) - 100;
-      return new Player(app, engine, unit, { x, y, facing });
+      const p = new Player(app, engine, unit, { x, y, facing });
+      // Visually mirror left/right by flipping container scale
+      p.root.scale.x = facing;
+      return p;
     });
     playersRef.current = createdPlayers;
 
@@ -387,8 +390,8 @@ const GameEngine: React.FC = () => {
       return;
     }
     // Default case: spawn a projectile with velocity based on power
-    const minSpeed = 10;
-    const maxBoost = 40;
+    const minSpeed = 12;
+    const maxBoost = 45;
     const speed = minSpeed + (power / 100) * maxBoost;
     const vx = Math.cos(radians) * speed * facing;
     const vy = -Math.sin(radians) * speed;

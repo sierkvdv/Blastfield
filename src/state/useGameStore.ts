@@ -209,8 +209,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     }));
   },
   setAngle: (angle: number) => {
-    // Clamp angle between 0 and 90 degrees to prevent shooting into the ground
-    const clamped = Math.max(0, Math.min(90, angle));
+    // Clamp angle between 0 and 180 degrees to allow aiming both directions
+    const clamped = Math.max(0, Math.min(180, angle));
     set(() => ({ angle: clamped }));
   },
   setPower: (power: number) => {

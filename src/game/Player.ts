@@ -132,9 +132,10 @@ export default class Player {
    * upwards (counter‑clockwise). This does not affect the physics body.
    */
   updateWeaponAngle(angle: number) {
+    // Angle 0..180 with 90 straight up. Convert to facing-aware rotation.
     const radians = (angle * Math.PI) / 180;
-    // Rotate weapon so that 0 degrees points right and 90 degrees points up.
-    this.weaponGraphics.rotation = -radians;
+    const rot = this.root.scale.x >= 0 ? -radians : radians - Math.PI;
+    this.weaponGraphics.rotation = rot;
   }
 
   /**
