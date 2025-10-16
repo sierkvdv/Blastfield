@@ -295,8 +295,8 @@ const GameEngine: React.FC = () => {
     // Resolve the selected weapon definition
     const weapon = weapons.find((w) => w.id === selectedWeapon) || weapons[0];
     // Check ammo; if no ammo cancel firing and reset flag
-    const playerAmmo = ammo[currentTurn]?.[weapon.id] ?? 0;
-    if (playerAmmo <= 0) {
+    const playerAmmo = ammo[currentTurn]?.[weapon.id];
+    if (playerAmmo !== undefined && playerAmmo <= 0) {
       setFiring(false);
       return;
     }
