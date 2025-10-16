@@ -1,39 +1,72 @@
-
 import * as PIXI from 'pixi.js';
 import * as Matter from 'matter-js';
+import type { Weapon } from '../types';
 
+/**
+ * Projectile represents a fired bullet or shell. It contains both a
+ * Matter.js circle body for physics simulation and a PixiJS sprite for
+ * rendering. The projectile stores the weapon definition it was fired
+ * with so that the GameEngine can later determine damage and explosion
+ * visuals when collisions occur.
+ */
 export default class Projectile {
   app: PIXI.Application;
   engine: Matter.Engine;
-  sprite: PIXI.Sprite;
+  weapon: Weapon;
+  sprite: PIXI.Graphics;
   body: Matter.Body;
-  kind: string;
 
-  constructor(app: PIXI.Application, engine: Matter.Engine, position: { x: number; y: number }, velocity: { x: number; y: number }, kind: string = 'rocket') {
+  constructor(
+    app: PIXI.Application,
+    engine: Matter.Engine,
+    position: { x: number; y: number },
+    velocity: { x: number; y: number },
+    weapon: Weapon
+  ) {
     this.app = app;
     this.engine = engine;
-    this.kind = kind;
+    this.weapon = weapon;
 
-    const graphics = new PIXI.Graphics();
-    graphics.beginFill(0xe74c3c);
-    graphics.drawCircle(0, 0, 8);
-    graphics.endFill();
-
-    const texture = app.renderer.generateTexture(graphics);
-    this.sprite = new PIXI.Sprite(texture);
-    this.sprite.x = position.x;
-    this.sprite.y = position.y;
+    // Draw a simple circle for the projectile. The colour is derived
+    // from the weapon definition. Radius is fixed at 6 pixels.
+    const radius = 6;
+    this.sprite = new PIXI.Graphics();
+    this.sprite.beginFill(weapon.color);
+    this.sprite.drawCircle(0, 0, radius);
+    this.sprite.endFill();
+    this.sprite.position.set(position.x, position.y);
     this.app.stage.addChild(this.sprite);
 
-    this.body = Matter.Bodies.circle(position.x, position.y, 8, {
-      restitution: 0.3,
-      friction: 0.2
+    // Create a circular physics body. We label it so the collision
+    // handler can identify projectiles. The plugin property is used
+    // to store the weapon id for later lookup.
+    this.body = Matter.Bodies.circle(position.x, position.y, radius, {
+      restitution: 0.2,
+      friction: 0.1,
+      density: 0.01,
+      label: 'projectile'
     });
-    this.body.label = `projectile:${this.kind}`;
-    (this.body as any).sprite = this.sprite;
-    Matter.World.add(this.engine.world, this.body);
+    (this.body as any).plugin = { weaponId: weapon.id };
+    Matter.World.add(engine.world, this.body);
 
-    // Apply initial velocity
+    // Assign initial velocity
     Matter.Body.setVelocity(this.body, velocity);
+  }
+
+  /**
+   * Synchronise the sprite’s position with the physics body each tick.
+   */
+  update() {
+    this.sprite.position.set(this.body.position.x, this.body.position.y);
+  }
+
+  /**
+   * Destroy this projectile, removing its sprite and body from the world.
+   */
+  destroy() {
+    if (this.sprite.parent) {
+      this.sprite.parent.removeChild(this.sprite);
+    }
+    Matter.World.remove(this.engine.world, this.body);
   }
 }

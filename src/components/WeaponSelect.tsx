@@ -1,36 +1,33 @@
-
 import React from 'react';
 import { useGameStore } from '../state/useGameStore';
+import type { Weapon } from '../types';
 
+/**
+ * WeaponSelect displays all available weapons and allows the player to
+ * choose one. Clicking on a weapon will set it as the currently
+ * selected weapon in the global store. The selected weapon is
+ * highlighted in the list.
+ */
 const WeaponSelect: React.FC = () => {
-  const { weapons, selectedWeaponId, selectWeapon } = useGameStore();
-
-  const grouped = weapons.reduce((acc: Record<string, any[]>, w: any) => {
-    const key = w.category || 'Other';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(w);
-    return acc;
-  }, {});
+  const weapons = useGameStore((state) => state.weapons);
+  const selectedWeapon = useGameStore((state) => state.selectedWeapon);
+  const setSelectedWeapon = useGameStore((state) => state.setSelectedWeapon);
 
   return (
     <div className="weapon-select">
-      <h3>Select Weapon</h3>
-      {Object.keys(grouped).map((cat) => (
-        <div key={cat} className="weapon-category">
-          <div className="weapon-category-title">{cat}</div>
-          <ul>
-            {grouped[cat].map((weapon) => (
-              <li
-                key={weapon.id}
-                className={selectedWeaponId === weapon.id ? 'selected' : ''}
-                onClick={() => selectWeapon(weapon.id)}
-              >
-                {weapon.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      <h3>Weapon</h3>
+      <ul>
+        {weapons.map((weapon: Weapon) => (
+          <li
+            key={weapon.id}
+            className={selectedWeapon === weapon.id ? 'selected' : ''}
+            onClick={() => setSelectedWeapon(weapon.id)}
+            style={{ cursor: 'pointer' }}
+          >
+            {weapon.name}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

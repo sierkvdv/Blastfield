@@ -6,7 +6,6 @@ export default class Terrain {
   app: PIXI.Application;
   engine: Matter.Engine;
   graphics: PIXI.Graphics;
-  body!: Matter.Body;
 
   constructor(app: PIXI.Application, engine: Matter.Engine) {
     this.app = app;
@@ -30,11 +29,10 @@ export default class Terrain {
     this.graphics.endFill();
 
     // Create Matter body to interact with projectiles and players
-    this.body = Matter.Bodies.rectangle(width / 2, height - 10, width, 20, {
+    const body = Matter.Bodies.rectangle(width / 2, height - 10, width, 20, {
       isStatic: true,
       angle: 0
     });
-    this.body.label = 'terrain';
-    Matter.World.add(this.engine.world, this.body);
+    Matter.World.add(this.engine.world, body);
   }
 }

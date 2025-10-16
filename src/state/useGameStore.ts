@@ -1,94 +1,127 @@
-
 import create from 'zustand';
-import { Unit } from '../data/units';
-import weapons from '../data/weapons.json';
-import units from '../data/units.json';
-import events from '../data/events.json';
+import type { Unit, Weapon } from '../types';
+import unitsData from '../data/units.json';
+import weaponsData from '../data/weapons.json';
+import eventsData from '../data/events.json';
 
+/**
+ * Zustand store to manage global game state. This store encapsulates
+ * information about the match such as which units are playing,
+ * whose turn it is, what the wind strength is, and values needed
+ * to control firing (angle, power, selected weapon and firing flag).
+ */
 interface GameState {
+  /** Whether the initial team selection / setup has been completed. */
   setupCompleted: boolean;
-  currentTurn: number | null;
+  /** Index into the `units` array indicating whose turn it is. */
+  currentTurn: number;
+  /** Array of active units taking part in the current match. */
   units: Unit[];
-  weapons: any[];
-  randomEvents: any[];
-  wind: number;
-  selectedWeaponId: string | null;
+  /** All available unit definitions loaded from JSON. */
   allUnits: Unit[];
-  selectedUnitId: string | null;
-  power: number;
+  /** All weapon definitions loaded from JSON. */
+  weapons: Weapon[];
+  /** ID of the weapon selected by the current player. */
+  selectedWeapon: string;
+  /** Angle of the aiming reticule in degrees (0 = right, 90 = up). */
   angle: number;
-  ammo: Record<string, number>;
-  cooldowns: Record<string, number>;
-  gameOver: boolean;
-  initializeGame: () => void;
-  resetGame: () => void;
+  /** Power of the shot on a 0‑100 scale. */
+  power: number;
+  /** When true the GameEngine should spawn a projectile on behalf of the current player. */
+  firing: boolean;
+  /** Current wind strength (negative values blow left, positive values blow right). */
+  wind: number;
+  /** Number of units per team (1 for 1v1, 2 for 2v2). */
+  unitsPerTeam: number;
+  /** Update the number of units per team (1 or 2). */
+  setUnitsPerTeam: (n: number) => void;
+  /** Pool of random event definitions loaded from JSON. */
+  randomEvents: any[];
+  /** Initialise a new game. Accepts a list of unit IDs to spawn; if omitted the first two units are used. */
+  initializeGame: (selectedUnitIds?: string[]) => void;
+  /** Advance to the next player's turn and randomise the wind. */
   nextTurn: () => void;
-  selectWeapon: (weaponId: string) => void;
-  selectUnit: (unitId: string) => void;
-  setPower: (value: number) => void;
-  setAngle: (value: number) => void;
-  consumeAmmo: (weaponId: string) => boolean;
-  setCooldown: (weaponId: string, ms: number) => void;
-  tickCooldowns: (ms: number) => void;
-  setGameOver: (v: boolean) => void;
+  /** Adjust the current firing angle. */
+  setAngle: (angle: number) => void;
+  /** Adjust the current firing power. */
+  setPower: (power: number) => void;
+  /** Change the currently selected weapon. */
+  setSelectedWeapon: (weaponId: string) => void;
+  /** Trigger or reset the firing flag. When set to true the GameEngine should fire a projectile then reset the flag to false. */
+  setFiring: (flag: boolean) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   setupCompleted: false,
-  currentTurn: null,
+  currentTurn: 0,
   units: [],
-  weapons: weapons,
-  randomEvents: events,
-  wind: 0,
-  selectedWeaponId: null,
-  allUnits: units as any,
-  selectedUnitId: null,
-  power: 50,
+  allUnits: unitsData as unknown as Unit[],
+  weapons: weaponsData as unknown as Weapon[],
+  selectedWeapon: (weaponsData as any)[0]?.id ?? '',
   angle: 45,
-  ammo: { rocket: 99, plasma_ball: 50, cluster_bomb: 10, mirv: 5, nuke: 1, laser_beam: 20, black_hole: 2, teleport: 3, meteor_shower: 3 },
-  cooldowns: {},
-  gameOver: false,
-  initializeGame: () => {
-    const { selectedUnitId, allUnits } = get();
-    const chosen = selectedUnitId
-      ? allUnits.filter((u: any) => u.id === selectedUnitId)
-      : allUnits.slice(0, 1);
+  power: 50,
+  firing: false,
+  wind: 0,
+  // Default to 1 unit per team (1v1). Can be updated to 2 via setUnitsPerTeam.
+  unitsPerTeam: 1,
+  setUnitsPerTeam: (n: number) => {
+    // Clamp the requested team size between 1 and 2.
+    const val = Math.max(1, Math.min(2, n));
+    set(() => ({ unitsPerTeam: val }));
+  },
+  randomEvents: eventsData as any[],
+  initializeGame: (selectedUnitIds?: string[]) => {
+    const all = unitsData as unknown as Unit[];
+    let chosen: Unit[];
+    if (selectedUnitIds && selectedUnitIds.length > 0) {
+      // Map provided IDs to units and filter out undefined entries
+      chosen = selectedUnitIds
+        .map((id) => all.find((u) => u.id === id))
+        .filter(Boolean) as Unit[];
+    } else {
+      // If no selection was made, default to the first unitsPerTeam * 2 units
+      const count = get().unitsPerTeam * 2;
+      chosen = all.slice(0, count) as Unit[];
+    }
+    // Required number of units equals the number of teams (always 2) times the units per team
+    const requiredCount = get().unitsPerTeam * 2;
+    // If fewer than required units were selected, duplicate the first selected unit to fill
+    while (chosen.length < requiredCount) {
+      chosen.push(chosen[0] ?? all[0]);
+    }
+    // Trim any extra selections beyond the required count
+    chosen = chosen.slice(0, requiredCount);
     set(() => ({
+      units: chosen,
       setupCompleted: true,
       currentTurn: 0,
-      units: chosen as any,
-      gameOver: false
+      // Randomise initial wind between -1 and 1
+      wind: (Math.random() - 0.5) * 2
     }));
   },
-  resetGame: () => set(() => ({ setupCompleted: false, currentTurn: null, units: [], selectedUnitId: null })),
-  nextTurn: () => set((state) => ({
-    currentTurn: state.currentTurn !== null ? (state.currentTurn + 1) % (state.units.length) : 0,
-    wind: (Math.random() - 0.5) * 2
-  })),
-  selectWeapon: (weaponId: string) => set(() => ({ selectedWeaponId: weaponId })),
-  selectUnit: (unitId: string) => set(() => ({ selectedUnitId: unitId })),
-  setPower: (value: number) => set(() => ({ power: Math.max(0, Math.min(100, value)) })),
-  setAngle: (value: number) => set(() => ({ angle: Math.max(0, Math.min(90, value)) })),
-  consumeAmmo: (weaponId: string) => {
-    const a = { ...get().ammo };
-    if (a[weaponId] === undefined) return true; // unlimited if not tracked
-    if (a[weaponId] <= 0) return false;
-    a[weaponId] -= 1;
-    set({ ammo: a });
-    return true;
+  nextTurn: () => {
+    const state = get();
+    const nextIndex = (state.currentTurn + 1) % state.units.length;
+    set(() => ({
+      currentTurn: nextIndex,
+      // Randomise wind each turn
+      wind: (Math.random() - 0.5) * 2
+    }));
   },
-  setCooldown: (weaponId: string, ms: number) => {
-    const cds = { ...get().cooldowns };
-    cds[weaponId] = Math.max(cds[weaponId] || 0, ms);
-    set({ cooldowns: cds });
+  setAngle: (angle: number) => {
+    // Clamp angle between 0 and 90 degrees to prevent shooting into the ground
+    const clamped = Math.max(0, Math.min(90, angle));
+    set(() => ({ angle: clamped }));
   },
-  tickCooldowns: (ms: number) => {
-    const cds = { ...get().cooldowns };
-    Object.keys(cds).forEach((k) => {
-      cds[k] = Math.max(0, cds[k] - ms);
-      if (cds[k] === 0) delete cds[k];
-    });
-    set({ cooldowns: cds });
+  setPower: (power: number) => {
+    // Clamp power between 10 and 100 to avoid zero velocity
+    const clamped = Math.max(10, Math.min(100, power));
+    set(() => ({ power: clamped }));
   },
-  setGameOver: (v: boolean) => set({ gameOver: v })
+  setSelectedWeapon: (weaponId: string) => {
+    set(() => ({ selectedWeapon: weaponId }));
+  },
+  setFiring: (flag: boolean) => {
+    set(() => ({ firing: flag }));
+  }
 }));

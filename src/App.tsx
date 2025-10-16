@@ -13,7 +13,7 @@ const App: React.FC = () => {
       {!setupCompleted && <TeamSetup />}
       {setupCompleted && <HUD />}
       <div id="game-canvas-container">
-        {setupCompleted && <GameEngine />}
+        <GameEngine />
       </div>
     </div>
   );

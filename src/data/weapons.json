@@ -5,7 +5,9 @@
     "damage": 30,
     "radius": 40,
     "effect": "blast",
-    "category": "Explosives"
+    "category": "Explosives",
+    "color": 16711680,
+    "explosionColor": 16753920
   },
   {
     "id": "cluster_bomb",
@@ -13,7 +15,9 @@
     "damage": 50,
     "radius": 60,
     "effect": "cluster",
-    "category": "Explosives"
+    "category": "Explosives",
+    "color": 16766720,
+    "explosionColor": 16747520
   },
   {
     "id": "mirv",
@@ -21,7 +25,9 @@
     "damage": 70,
     "radius": 80,
     "effect": "multiple",
-    "category": "Explosives"
+    "category": "Explosives",
+    "color": 11403055,
+    "explosionColor": 8190976
   },
   {
     "id": "nuke",
@@ -29,7 +35,9 @@
     "damage": 100,
     "radius": 100,
     "effect": "nuclear",
-    "category": "Explosives"
+    "category": "Explosives",
+    "color": 16776960,
+    "explosionColor": 16775920
   },
   {
     "id": "laser_beam",
@@ -37,7 +45,9 @@
     "damage": 20,
     "radius": 0,
     "effect": "beam",
-    "category": "Energy"
+    "category": "Energy",
+    "color": 65535,
+    "explosionColor": 65535
   },
   {
     "id": "plasma_ball",
@@ -45,7 +55,9 @@
     "damage": 40,
     "radius": 20,
     "effect": "burn",
-    "category": "Energy"
+    "category": "Energy",
+    "color": 65407,
+    "explosionColor": 65407
   },
   {
     "id": "teleport",
@@ -53,7 +65,9 @@
     "damage": 0,
     "radius": 0,
     "effect": "teleport",
-    "category": "Utility"
+    "category": "Utility",
+    "color": 16777215,
+    "explosionColor": 16777215
   },
   {
     "id": "jetpack",
@@ -61,7 +75,9 @@
     "damage": 0,
     "radius": 0,
     "effect": "fly",
-    "category": "Utility"
+    "category": "Utility",
+    "color": 16777215,
+    "explosionColor": 16777215
   },
   {
     "id": "meteor_shower",
@@ -69,7 +85,9 @@
     "damage": 60,
     "radius": 90,
     "effect": "meteor",
-    "category": "Chaos"
+    "category": "Chaos",
+    "color": 14423100,
+    "explosionColor": 14423100
   },
   {
     "id": "black_hole",
@@ -77,6 +95,8 @@
     "damage": 0,
     "radius": 120,
     "effect": "gravity",
-    "category": "Chaos"
+    "category": "Chaos",
+    "color": 4915330,
+    "explosionColor": 4915330
   }
 ]
