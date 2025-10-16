@@ -210,12 +210,14 @@ const GameEngine: React.FC = () => {
       });
       // Synchronise player graphics with physics bodies and set weapon angle
       playersRef.current.forEach((player, index) => {
-        player.root.position.set(player.body.position.x, player.body.position.y);
-        // Highlight the active player's weapon and update angle
-        const isActive = index === currentTurn && player.isAlive;
-        player.setActive(isActive);
-        if (isActive) {
-          player.updateWeaponAngle(angle);
+        if (!player || !(player as any).root || !(player as any).body) return;
+        // Type guard for Player-like objects
+        const p: any = player as any;
+        p.root.position.set(p.body.position.x, p.body.position.y);
+        const isActive = index === currentTurn && (p.isAlive ?? true);
+        if (typeof p.setActive === 'function') p.setActive(isActive);
+        if (isActive && typeof p.updateWeaponAngle === 'function') {
+          p.updateWeaponAngle(angle);
         }
       });
     });
@@ -240,7 +242,7 @@ const GameEngine: React.FC = () => {
       app.destroy(true);
       if (engine) {
         Matter.World.clear(engine.world, false);
-        Matter.Engine.clear(engine);
+      Matter.Engine.clear(engine);
       }
     };
     // Re-run when units change
