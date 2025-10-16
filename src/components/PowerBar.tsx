@@ -35,7 +35,10 @@ const PowerBar: React.FC = () => {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPower(parseFloat(e.target.value))}
         />
       </div>
-      <button className="fire-button" onClick={() => setFiring(true)}>
+      <button className="fire-button" onClick={() => {
+        console.log('Fire clicked');
+        setFiring(true);
+      }}>
         Fire
       </button>
     </div>

@@ -67,6 +67,15 @@ const GameEngine: React.FC = () => {
     const engine = Matter.Engine.create();
     engineRef.current = engine;
 
+    // Add invisible world bounds so players/projectiles can't fall off screen
+    const w = app.renderer.width;
+    const h = app.renderer.height;
+    const wallThickness = 80;
+    const leftWall = Matter.Bodies.rectangle(-wallThickness / 2, h / 2, wallThickness, h, { isStatic: true, label: 'wall' });
+    const rightWall = Matter.Bodies.rectangle(w + wallThickness / 2, h / 2, wallThickness, h, { isStatic: true, label: 'wall' });
+    const floor = Matter.Bodies.rectangle(w / 2, h + wallThickness / 2, w, wallThickness, { isStatic: true, label: 'floor' });
+    Matter.World.add(engine.world, [leftWall, rightWall, floor]);
+
     // Create destructible terrain and store reference
     const terrain = new Terrain(app, engine);
     terrainRef.current = terrain;
@@ -244,7 +253,10 @@ const GameEngine: React.FC = () => {
       else if (e.code === 'ArrowDown') state.setAngle(state.angle - 2);
       else if (e.code === 'ArrowRight') state.setPower(state.power + 5);
       else if (e.code === 'ArrowLeft') state.setPower(state.power - 5);
-      else if (e.code === 'Space') state.setFiring(true);
+      else if (e.code === 'Space') {
+        console.log('Space fired');
+        state.setFiring(true);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
 
@@ -303,9 +315,9 @@ const GameEngine: React.FC = () => {
     if (!firing) return;
     const app = appRef.current;
     const engine = engineRef.current;
-    if (!app || !engine) return;
+    if (!app || !engine) { setFiring(false); return; }
     const currentPlayer = playersRef.current[currentTurn];
-    if (!currentPlayer || !currentPlayer.isAlive) return;
+    if (!currentPlayer || !currentPlayer.isAlive) { setFiring(false); return; }
     // Resolve the selected weapon definition
     const weapon = weapons.find((w) => w.id === selectedWeapon) || weapons[0];
     // Check ammo; if no ammo cancel firing and reset flag
