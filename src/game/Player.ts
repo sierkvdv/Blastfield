@@ -22,9 +22,6 @@ export default class Player {
   bodyGraphics: PIXI.Graphics;
   /** Graphics used to draw the weapon barrel. */
   weaponGraphics: PIXI.Graphics;
-  /** Health bar background and fill. */
-  healthBarBg: PIXI.Graphics;
-  healthBarFill: PIXI.Graphics;
   /** Physics body representing the unit in the Matter.js world. */
   body: Matter.Body;
   /** Mount point on the body from which the weapon protrudes. */
@@ -34,12 +31,8 @@ export default class Player {
   /** Dimensions used to compute placement of the graphics. */
   width: number;
   height: number;
-  /** Direction the unit faces: +1 => right, -1 => left. */
-  facing: 1 | -1;
-  /** Alive flag to quickly check if the player can act. */
-  isAlive: boolean;
 
-  constructor(app: PIXI.Application, engine: Matter.Engine, unit: Unit, opts?: { x?: number; y?: number; facing?: 1 | -1 }) {
+  constructor(app: PIXI.Application, engine: Matter.Engine, unit: Unit) {
     this.app = app;
     this.engine = engine;
     this.unit = unit;
@@ -119,25 +112,8 @@ export default class Player {
     this.weaponGraphics.position.set(this.mountPoint.x, this.mountPoint.y);
     this.root.addChild(this.weaponGraphics);
 
-    // Health bar (appears above the unit)
-    this.healthBarBg = new PIXI.Graphics();
-    this.healthBarFill = new PIXI.Graphics();
-    const barWidth = width;
-    const barHeight = 6;
-    const barY = -height / 2 - 12;
-    this.healthBarBg.beginFill(0x000000, 0.6);
-    this.healthBarBg.drawRoundedRect(-barWidth / 2, barY, barWidth, barHeight, 3);
-    this.healthBarBg.endFill();
-    this.root.addChild(this.healthBarBg);
-    this.root.addChild(this.healthBarFill);
-    this.updateHealthBar();
-
-    // Set initial position (defaults if not provided)
-    const startX = opts?.x ?? Math.random() * (app.renderer.width - width) + width / 2;
-    const startY = opts?.y ?? 200;
-    this.root.position.set(startX, startY);
-    this.facing = opts?.facing ?? 1;
-    this.isAlive = true;
+    // Set initial position randomly along the x-axis and above the terrain.
+    this.root.position.set(Math.random() * (app.renderer.width - width) + width / 2, 200);
     this.app.stage.addChild(this.root);
 
     // Create the physics body. Use a rectangle for all shapes for simplicity.
@@ -157,29 +133,8 @@ export default class Player {
    */
   updateWeaponAngle(angle: number) {
     const radians = (angle * Math.PI) / 180;
-    // Facing right: 0deg => right; Facing left: 0deg => left (pi rad)
-    this.weaponGraphics.rotation = this.facing === 1 ? -radians : -(Math.PI - radians);
-  }
-
-  /** Visually emphasise the active player's weapon. */
-  setActive(isActive: boolean) {
-    this.weaponGraphics.alpha = isActive ? 1 : 0.35;
-  }
-
-  /** Redraw the health bar proportionally to current health. */
-  updateHealthBar() {
-    const ratio = Math.max(0, Math.min(1, this.health / this.unit.stats.health));
-    const barWidth = this.width;
-    const barHeight = 6;
-    const barY = -this.height / 2 - 12;
-    this.healthBarFill.clear();
-    // Interpolate from red to green based on ratio
-    const r = Math.floor(255 * (1 - ratio));
-    const g = Math.floor(255 * ratio);
-    const color = (r << 16) | (g << 8);
-    this.healthBarFill.beginFill(color);
-    this.healthBarFill.drawRoundedRect(-barWidth / 2 + 1, barY + 1, Math.max(0, barWidth * ratio - 2), barHeight - 2, 2);
-    this.healthBarFill.endFill();
+    // Rotate weapon so that 0 degrees points right and 90 degrees points up.
+    this.weaponGraphics.rotation = -radians;
   }
 
   /**
@@ -190,7 +145,6 @@ export default class Player {
    */
   takeDamage(amount: number) {
     this.health -= amount;
-    this.updateHealthBar();
     if (this.health <= 0) {
       // Remove sprite from stage
       if (this.root.parent) {
@@ -198,7 +152,6 @@ export default class Player {
       }
       // Remove body from physics engine
       Matter.World.remove(this.engine.world, this.body);
-      this.isAlive = false;
     }
   }
 }

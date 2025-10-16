@@ -39,6 +39,12 @@ body {
   text-decoration: underline;
 }
 
+/* Disable styling for weapons with zero ammo */
+.weapon-select li.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* HUD individual sections */
 .turn-indicator {
   font-weight: bold;

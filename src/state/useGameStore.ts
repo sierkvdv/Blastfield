@@ -37,6 +37,29 @@ interface GameState {
   setUnitsPerTeam: (n: number) => void;
   /** Pool of random event definitions loaded from JSON. */
   randomEvents: any[];
+  /**
+   * Ammo counts per player. Each entry corresponds to a player index and
+   * maps weapon IDs to the number of shots remaining. Weapons with
+   * zero ammo cannot be selected or fired. When a new game starts the
+   * ammo array is reinitialised with starting values.
+   */
+  ammo: Record<string, number>[];
+  /**
+   * Set the ammo count for a specific player and weapon. This is
+   * typically used internally by increaseAmmo and decreaseAmmo but is
+   * exposed for flexibility.
+   */
+  setAmmo: (playerIndex: number, weaponId: string, amount: number) => void;
+  /**
+   * Decrease the ammo count of a weapon by one. If ammo is already
+   * zero this function does nothing. Used when firing a weapon.
+   */
+  decreaseAmmo: (playerIndex: number, weaponId: string) => void;
+  /**
+   * Increase the ammo count of a weapon by a given amount. Used when
+   * collecting ammo crates from random events.
+   */
+  increaseAmmo: (playerIndex: number, weaponId: string, amount: number) => void;
   /** Initialise a new game. Accepts a list of unit IDs to spawn; if omitted the first two units are used. */
   initializeGame: (selectedUnitIds?: string[]) => void;
   /** Advance to the next player's turn and randomise the wind. */
@@ -70,6 +93,33 @@ export const useGameStore = create<GameState>((set, get) => ({
     set(() => ({ unitsPerTeam: val }));
   },
   randomEvents: eventsData as any[],
+    ammo: [],
+    setAmmo: (playerIndex: number, weaponId: string, amount: number) => {
+      set((state) => {
+        const ammoCopy = state.ammo.map((a) => ({ ...a }));
+        if (!ammoCopy[playerIndex]) ammoCopy[playerIndex] = {};
+        ammoCopy[playerIndex][weaponId] = Math.max(0, amount);
+        return { ammo: ammoCopy };
+      });
+    },
+    decreaseAmmo: (playerIndex: number, weaponId: string) => {
+      set((state) => {
+        const ammoCopy = state.ammo.map((a) => ({ ...a }));
+        if (!ammoCopy[playerIndex]) ammoCopy[playerIndex] = {};
+        const current = ammoCopy[playerIndex][weaponId] ?? 0;
+        ammoCopy[playerIndex][weaponId] = Math.max(0, current - 1);
+        return { ammo: ammoCopy };
+      });
+    },
+    increaseAmmo: (playerIndex: number, weaponId: string, amount: number) => {
+      set((state) => {
+        const ammoCopy = state.ammo.map((a) => ({ ...a }));
+        if (!ammoCopy[playerIndex]) ammoCopy[playerIndex] = {};
+        const current = ammoCopy[playerIndex][weaponId] ?? 0;
+        ammoCopy[playerIndex][weaponId] = current + amount;
+        return { ammo: ammoCopy };
+      });
+    },
   initializeGame: (selectedUnitIds?: string[]) => {
     const all = unitsData as unknown as Unit[];
     let chosen: Unit[];
@@ -98,10 +148,60 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Randomise initial wind between -1 and 1
       wind: (Math.random() - 0.5) * 2
     }));
+    // Initialise ammo counts for each player. Each player starts with a
+    // predefined number of shots for each weapon. More powerful
+    // weapons receive fewer shots to encourage variety. If a weapon
+    // definition is missing from this table it defaults to 3 shots.
+    const ammoPerPlayer: Record<string, number>[] = [];
+    const weaponsList: Weapon[] = weaponsData as any;
+    for (let i = 0; i < chosen.length; i++) {
+      const inventory: Record<string, number> = {};
+      weaponsList.forEach((w) => {
+        let startAmmo: number;
+        switch (w.id) {
+          case 'rocket':
+            startAmmo = 5;
+            break;
+          case 'cluster_bomb':
+            startAmmo = 3;
+            break;
+          case 'mirv':
+            startAmmo = 2;
+            break;
+          case 'nuke':
+            startAmmo = 1;
+            break;
+          case 'laser_beam':
+            startAmmo = 5;
+            break;
+          case 'plasma_ball':
+            startAmmo = 3;
+            break;
+          case 'teleport':
+            startAmmo = 2;
+            break;
+          case 'jetpack':
+            startAmmo = 2;
+            break;
+          case 'meteor_shower':
+            startAmmo = 1;
+            break;
+          case 'black_hole':
+            startAmmo = 1;
+            break;
+          default:
+            startAmmo = 3;
+            break;
+        }
+        inventory[w.id] = startAmmo;
+      });
+      ammoPerPlayer.push(inventory);
+    }
+    set(() => ({ ammo: ammoPerPlayer }));
   },
   nextTurn: () => {
     const state = get();
-    const nextIndex = (state.currentTurn + 1) % Math.max(1, state.units.length);
+    const nextIndex = (state.currentTurn + 1) % state.units.length;
     set(() => ({
       currentTurn: nextIndex,
       // Randomise wind each turn
@@ -115,7 +215,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   setPower: (power: number) => {
     // Clamp power between 10 and 100 to avoid zero velocity
-    const clamped = Math.max(0, Math.min(100, power));
+    const clamped = Math.max(10, Math.min(100, power));
     set(() => ({ power: clamped }));
   },
   setSelectedWeapon: (weaponId: string) => {

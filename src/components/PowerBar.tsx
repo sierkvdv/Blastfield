@@ -29,7 +29,7 @@ const PowerBar: React.FC = () => {
         <label>Power: {Math.round(power)}</label>
         <input
           type="range"
-          min="0"
+          min="10"
           max="100"
           value={power}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPower(parseFloat(e.target.value))}
