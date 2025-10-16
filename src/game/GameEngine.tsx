@@ -209,15 +209,15 @@ const GameEngine: React.FC = () => {
         }
       });
       // Synchronise player graphics with physics bodies and set weapon angle
+      const state = useGameStore.getState();
       playersRef.current.forEach((player, index) => {
         if (!player || !(player as any).root || !(player as any).body) return;
-        // Type guard for Player-like objects
         const p: any = player as any;
         p.root.position.set(p.body.position.x, p.body.position.y);
-        const isActive = index === currentTurn && (p.isAlive ?? true);
+        const isActive = index === state.currentTurn;
         if (typeof p.setActive === 'function') p.setActive(isActive);
         if (isActive && typeof p.updateWeaponAngle === 'function') {
-          p.updateWeaponAngle(angle);
+          p.updateWeaponAngle(state.angle);
         }
       });
     });
@@ -404,9 +404,9 @@ const GameEngine: React.FC = () => {
    * controls.
    */
   useEffect(() => {
-    const player = playersRef.current[currentTurn];
-    if (player && player.isAlive) {
-      player.updateWeaponAngle(angle);
+    const p = playersRef.current[currentTurn];
+    if (p && p.isAlive && typeof p.updateWeaponAngle === 'function') {
+      p.updateWeaponAngle(angle);
     }
   }, [angle, currentTurn]);
 
