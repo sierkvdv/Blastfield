@@ -148,7 +148,7 @@ const GameEngine: React.FC = () => {
         // Active player's weapon follows current angle; also highlight active weapon
         const isActive = index === currentTurn && player.isAlive;
         player.setActive(isActive);
-        if (isActive) player.updateWeaponAngle(angle);
+        // Do NOT set angle here; the ticker would overwrite live updates from the angle effect.
       });
     });
 
@@ -228,7 +228,9 @@ const GameEngine: React.FC = () => {
   // immediately even if they haven’t fired.
   useEffect(() => {
     const player = playersRef.current[currentTurn];
-    if (player && player.isAlive) player.updateWeaponAngle(angle);
+    if (player && player.isAlive) {
+      player.updateWeaponAngle(angle);
+    }
   }, [angle, currentTurn]);
 
   return <div ref={canvasRef} style={{ width: '100%', height: '100%' }} />;
