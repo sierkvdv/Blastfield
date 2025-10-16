@@ -101,7 +101,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   nextTurn: () => {
     const state = get();
-    const nextIndex = (state.currentTurn + 1) % state.units.length;
+    const nextIndex = (state.currentTurn + 1) % Math.max(1, state.units.length);
     set(() => ({
       currentTurn: nextIndex,
       // Randomise wind each turn

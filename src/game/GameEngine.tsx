@@ -146,7 +146,7 @@ const GameEngine: React.FC = () => {
       playersRef.current.forEach((player, index) => {
         player.root.position.set(player.body.position.x, player.body.position.y);
         // Active player's weapon follows current angle; also highlight active weapon
-        const isActive = index === currentTurn;
+        const isActive = index === currentTurn && player.isAlive;
         player.setActive(isActive);
         if (isActive) player.updateWeaponAngle(angle);
       });
@@ -194,7 +194,7 @@ const GameEngine: React.FC = () => {
     const engine = engineRef.current;
     if (!app || !engine) return;
     const currentPlayer = playersRef.current[currentTurn];
-    if (!currentPlayer) return;
+    if (!currentPlayer || !currentPlayer.isAlive) return;
     // Find the selected weapon definition. Fallback to the first weapon.
     const weapon = weapons.find((w) => w.id === selectedWeapon) || weapons[0];
     // Convert angle to radians. 0° points right, 90° points up.
@@ -228,9 +228,7 @@ const GameEngine: React.FC = () => {
   // immediately even if they haven’t fired.
   useEffect(() => {
     const player = playersRef.current[currentTurn];
-    if (player) {
-      player.updateWeaponAngle(angle);
-    }
+    if (player && player.isAlive) player.updateWeaponAngle(angle);
   }, [angle, currentTurn]);
 
   return <div ref={canvasRef} style={{ width: '100%', height: '100%' }} />;

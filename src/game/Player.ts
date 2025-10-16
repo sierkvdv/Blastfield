@@ -36,6 +36,8 @@ export default class Player {
   height: number;
   /** Direction the unit faces: +1 => right, -1 => left. */
   facing: 1 | -1;
+  /** Alive flag to quickly check if the player can act. */
+  isAlive: boolean;
 
   constructor(app: PIXI.Application, engine: Matter.Engine, unit: Unit, opts?: { x?: number; y?: number; facing?: 1 | -1 }) {
     this.app = app;
@@ -135,6 +137,7 @@ export default class Player {
     const startY = opts?.y ?? 200;
     this.root.position.set(startX, startY);
     this.facing = opts?.facing ?? 1;
+    this.isAlive = true;
     this.app.stage.addChild(this.root);
 
     // Create the physics body. Use a rectangle for all shapes for simplicity.
@@ -195,6 +198,7 @@ export default class Player {
       }
       // Remove body from physics engine
       Matter.World.remove(this.engine.world, this.body);
+      this.isAlive = false;
     }
   }
 }
