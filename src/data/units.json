@@ -1,0 +1,57 @@
+[
+  {
+    "id": "tank",
+    "name": "Tank",
+    "description": "Strong armor, slow movement",
+    "special": "Energy Shield",
+    "stats": {
+      "armor": 100,
+      "speed": 30,
+      "health": 100
+    }
+  },
+  {
+    "id": "drone",
+    "name": "Drone",
+    "description": "Light, can hover",
+    "special": "Air Strike",
+    "stats": {
+      "armor": 60,
+      "speed": 80,
+      "health": 80
+    }
+  },
+  {
+    "id": "walker",
+    "name": "Walker",
+    "description": "Mobile, jumps terrain",
+    "special": "EMP Pulse",
+    "stats": {
+      "armor": 80,
+      "speed": 60,
+      "health": 90
+    }
+  },
+  {
+    "id": "subterra",
+    "name": "Subterra",
+    "description": "Burrows through terrain",
+    "special": "Earthquake",
+    "stats": {
+      "armor": 90,
+      "speed": 40,
+      "health": 110
+    }
+  },
+  {
+    "id": "hover",
+    "name": "Hover",
+    "description": "Floats slightly above ground",
+    "special": "Ricochet Shot",
+    "stats": {
+      "armor": 70,
+      "speed": 70,
+      "health": 85
+    }
+  }
+]

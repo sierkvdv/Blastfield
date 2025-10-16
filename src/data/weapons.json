@@ -1,0 +1,82 @@
+[
+  {
+    "id": "rocket",
+    "name": "Rocket",
+    "damage": 30,
+    "radius": 40,
+    "effect": "blast",
+    "category": "Explosives"
+  },
+  {
+    "id": "cluster_bomb",
+    "name": "Cluster Bomb",
+    "damage": 50,
+    "radius": 60,
+    "effect": "cluster",
+    "category": "Explosives"
+  },
+  {
+    "id": "mirv",
+    "name": "MIRV",
+    "damage": 70,
+    "radius": 80,
+    "effect": "multiple",
+    "category": "Explosives"
+  },
+  {
+    "id": "nuke",
+    "name": "Nuke",
+    "damage": 100,
+    "radius": 100,
+    "effect": "nuclear",
+    "category": "Explosives"
+  },
+  {
+    "id": "laser_beam",
+    "name": "Laser Beam",
+    "damage": 20,
+    "radius": 0,
+    "effect": "beam",
+    "category": "Energy"
+  },
+  {
+    "id": "plasma_ball",
+    "name": "Plasma Ball",
+    "damage": 40,
+    "radius": 20,
+    "effect": "burn",
+    "category": "Energy"
+  },
+  {
+    "id": "teleport",
+    "name": "Teleport",
+    "damage": 0,
+    "radius": 0,
+    "effect": "teleport",
+    "category": "Utility"
+  },
+  {
+    "id": "jetpack",
+    "name": "Jetpack",
+    "damage": 0,
+    "radius": 0,
+    "effect": "fly",
+    "category": "Utility"
+  },
+  {
+    "id": "meteor_shower",
+    "name": "Meteor Shower",
+    "damage": 60,
+    "radius": 90,
+    "effect": "meteor",
+    "category": "Chaos"
+  },
+  {
+    "id": "black_hole",
+    "name": "Black Hole",
+    "damage": 0,
+    "radius": 120,
+    "effect": "gravity",
+    "category": "Chaos"
+  }
+]

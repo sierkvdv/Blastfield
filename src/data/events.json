@@ -1,0 +1,26 @@
+[
+  {
+    "id": "meteor_shower",
+    "name": "Meteor Shower",
+    "description": "A meteor shower damages random positions on the map.",
+    "effect": "area_damage"
+  },
+  {
+    "id": "windstorm",
+    "name": "Windstorm",
+    "description": "Increases wind strength for the next round.",
+    "effect": "wind_change"
+  },
+  {
+    "id": "supply_drop",
+    "name": "Supply Drop",
+    "description": "A crate falls providing extra weapons or repairs.",
+    "effect": "crate_drop"
+  },
+  {
+    "id": "magnetic_field",
+    "name": "Magnetic Field",
+    "description": "Curves trajectories randomly.",
+    "effect": "trajectory_curve"
+  }
+]
