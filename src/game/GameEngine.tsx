@@ -315,11 +315,12 @@ const GameEngine: React.FC = () => {
     if (!firing) return;
     const app = appRef.current;
     const engine = engineRef.current;
-    if (!app || !engine) { setFiring(false); return; }
-    const currentPlayer = playersRef.current[currentTurn];
-    if (!currentPlayer || !currentPlayer.isAlive) { setFiring(false); return; }
+    if (!app || !engine) { console.log('Abort fire: app/engine not ready'); setFiring(false); return; }
+    const stateNow = useGameStore.getState();
+    const currentPlayer = playersRef.current[stateNow.currentTurn];
+    if (!currentPlayer || !currentPlayer.isAlive) { console.log('Abort fire: no current player'); setFiring(false); return; }
     // Resolve the selected weapon definition
-    const weapon = weapons.find((w) => w.id === selectedWeapon) || weapons[0];
+    const weapon = weapons.find((w) => w.id === stateNow.selectedWeapon) || weapons[0];
     // Check ammo; if no ammo cancel firing and reset flag
     // Temporarily allow firing regardless of ammo to avoid blocking
     // Helper to end turn and deduct ammo
@@ -329,7 +330,7 @@ const GameEngine: React.FC = () => {
       setFiring(false);
     };
     // Compute muzzle position and direction for projectiles and beams
-    const radians = (angle * Math.PI) / 180;
+    const radians = (stateNow.angle * Math.PI) / 180;
     const barrelLength = 30;
     const facing = currentPlayer.facing;
     const muzzleX =
@@ -404,9 +405,10 @@ const GameEngine: React.FC = () => {
     // Default case: spawn a projectile with velocity based on power
     const minSpeed = 12;
     const maxBoost = 45;
-    const speed = minSpeed + (power / 100) * maxBoost;
+    const speed = minSpeed + (stateNow.power / 100) * maxBoost;
     const vx = Math.cos(radians) * speed * facing;
     const vy = -Math.sin(radians) * speed;
+    console.log('Spawning projectile', { muzzleX, muzzleY, vx, vy, weapon: weapon.id });
     const projectile = new Projectile(app, engine, { x: muzzleX, y: muzzleY }, { x: vx, y: vy }, weapon);
     projectilesRef.current.push(projectile);
     finishTurn();
