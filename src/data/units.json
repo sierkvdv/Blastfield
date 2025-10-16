@@ -9,7 +9,6 @@
       "speed": 30,
       "health": 100
     },
-    // Provide a unique colour and shape so tanks can be drawn differently in the game.
     "color": 65280,
     "shape": "rectangle"
   },
