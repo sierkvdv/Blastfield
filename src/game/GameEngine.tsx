@@ -222,6 +222,16 @@ const GameEngine: React.FC = () => {
       });
     });
 
+    // Subscribe to angle/currentTurn changes from the store to rotate the
+    // active player's weapon immediately, independent of render timing.
+    const unsubscribe = useGameStore.subscribe(
+      (state) => ({ angle: state.angle, turn: state.currentTurn }),
+      ({ angle: a, turn }) => {
+        const p = playersRef.current[turn];
+        if (p && p.isAlive) p.updateWeaponAngle(a);
+      }
+    );
+
     // Keyboard controls for quick testing (optional). This allows using
     // arrow keys and space bar without relying solely on the UI. Values
     // are clamped within setters in the store.
@@ -244,6 +254,7 @@ const GameEngine: React.FC = () => {
         Matter.World.clear(engine.world, false);
       Matter.Engine.clear(engine);
       }
+      unsubscribe();
     };
     // Re-run when units change
   }, [units]);
