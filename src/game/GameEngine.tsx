@@ -199,8 +199,10 @@ const GameEngine: React.FC = () => {
     const weapon = weapons.find((w) => w.id === selectedWeapon) || weapons[0];
     // Convert angle to radians. 0° points right, 90° points up.
     const radians = (angle * Math.PI) / 180;
-    // Determine projectile speed based on power. Tune minSpeed and scaling for feel.
-    const speed = 5 + (power / 100) * 10;
+    // Determine projectile speed based on power. Stronger scaling to reach across the map.
+    const minSpeed = 8; // pixels/frame
+    const maxBoost = 22; // additional pixels/frame at 100 power
+    const speed = minSpeed + (power / 100) * maxBoost;
     const facing = currentPlayer.facing;
     const vx = Math.cos(radians) * speed * facing;
     const vy = -Math.sin(radians) * speed;

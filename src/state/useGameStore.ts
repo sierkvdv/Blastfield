@@ -115,7 +115,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   setPower: (power: number) => {
     // Clamp power between 10 and 100 to avoid zero velocity
-    const clamped = Math.max(10, Math.min(100, power));
+    const clamped = Math.max(0, Math.min(100, power));
     set(() => ({ power: clamped }));
   },
   setSelectedWeapon: (weaponId: string) => {
