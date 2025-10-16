@@ -22,6 +22,9 @@ export default class Player {
   bodyGraphics: PIXI.Graphics;
   /** Graphics used to draw the weapon barrel. */
   weaponGraphics: PIXI.Graphics;
+  /** Health bar background and fill. */
+  healthBarBg: PIXI.Graphics;
+  healthBarFill: PIXI.Graphics;
   /** Physics body representing the unit in the Matter.js world. */
   body: Matter.Body;
   /** Mount point on the body from which the weapon protrudes. */
@@ -112,6 +115,19 @@ export default class Player {
     this.weaponGraphics.position.set(this.mountPoint.x, this.mountPoint.y);
     this.root.addChild(this.weaponGraphics);
 
+    // Health bar (appears above the unit)
+    this.healthBarBg = new PIXI.Graphics();
+    this.healthBarFill = new PIXI.Graphics();
+    const barWidth = width;
+    const barHeight = 6;
+    const barY = -height / 2 - 12;
+    this.healthBarBg.beginFill(0x000000, 0.6);
+    this.healthBarBg.drawRoundedRect(-barWidth / 2, barY, barWidth, barHeight, 3);
+    this.healthBarBg.endFill();
+    this.root.addChild(this.healthBarBg);
+    this.root.addChild(this.healthBarFill);
+    this.updateHealthBar();
+
     // Set initial position randomly along the x-axis and above the terrain.
     this.root.position.set(Math.random() * (app.renderer.width - width) + width / 2, 200);
     this.app.stage.addChild(this.root);
@@ -137,6 +153,27 @@ export default class Player {
     this.weaponGraphics.rotation = -radians;
   }
 
+  /** Visually emphasise the active player's weapon. */
+  setActive(isActive: boolean) {
+    this.weaponGraphics.alpha = isActive ? 1 : 0.35;
+  }
+
+  /** Redraw the health bar proportionally to current health. */
+  updateHealthBar() {
+    const ratio = Math.max(0, Math.min(1, this.health / this.unit.stats.health));
+    const barWidth = this.width;
+    const barHeight = 6;
+    const barY = -this.height / 2 - 12;
+    this.healthBarFill.clear();
+    // Interpolate from red to green based on ratio
+    const r = Math.floor(255 * (1 - ratio));
+    const g = Math.floor(255 * ratio);
+    const color = (r << 16) | (g << 8);
+    this.healthBarFill.beginFill(color);
+    this.healthBarFill.drawRoundedRect(-barWidth / 2 + 1, barY + 1, Math.max(0, barWidth * ratio - 2), barHeight - 2, 2);
+    this.healthBarFill.endFill();
+  }
+
   /**
    * Apply damage to the player. When health drops below zero the root
    * container is removed from the stage and the physics body is removed
@@ -145,6 +182,7 @@ export default class Player {
    */
   takeDamage(amount: number) {
     this.health -= amount;
+    this.updateHealthBar();
     if (this.health <= 0) {
       // Remove sprite from stage
       if (this.root.parent) {

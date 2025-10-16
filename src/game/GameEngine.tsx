@@ -138,10 +138,10 @@ const GameEngine: React.FC = () => {
       // Synchronise player sprites with physics bodies and update weapon angle
       playersRef.current.forEach((player, index) => {
         player.root.position.set(player.body.position.x, player.body.position.y);
-        // Only the active player's weapon follows the global angle. Other players keep their last angle.
-        if (index === currentTurn) {
-          player.updateWeaponAngle(angle);
-        }
+        // Active player's weapon follows current angle; also highlight active weapon
+        const isActive = index === currentTurn;
+        player.setActive(isActive);
+        if (isActive) player.updateWeaponAngle(angle);
       });
     });
 
