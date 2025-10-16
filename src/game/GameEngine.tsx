@@ -65,7 +65,14 @@ const GameEngine: React.FC = () => {
 
     // Spawn players based on selected units. Store Player instances
     // so we can update them each frame.
-    const createdPlayers: Player[] = units.map((unit) => new Player(app, engine, unit));
+    // Spawn players with deterministic sides: index 0 on the left facing right, index 1 on the right facing left, etc.
+    const margin = 120;
+    const createdPlayers: Player[] = units.map((unit, idx) => {
+      const facing: 1 | -1 = idx % 2 === 0 ? 1 : -1;
+      const x = idx % 2 === 0 ? margin : app.renderer.width - margin;
+      const y = 200;
+      return new Player(app, engine, unit, { x, y, facing });
+    });
     playersRef.current = createdPlayers;
 
     // Listen for collisions so we know when a projectile hits
@@ -170,7 +177,7 @@ const GameEngine: React.FC = () => {
       app.destroy(true);
       if (engine) {
         Matter.World.clear(engine.world, false);
-        Matter.Engine.clear(engine);
+      Matter.Engine.clear(engine);
       }
     };
     // Note: depend on `units` so that when the selection changes a new
@@ -194,14 +201,15 @@ const GameEngine: React.FC = () => {
     const radians = (angle * Math.PI) / 180;
     // Determine projectile speed based on power. Tune minSpeed and scaling for feel.
     const speed = 5 + (power / 100) * 10;
-    const vx = Math.cos(radians) * speed;
+    const facing = currentPlayer.facing;
+    const vx = Math.cos(radians) * speed * facing;
     const vy = -Math.sin(radians) * speed;
     // Calculate muzzle position based off the player's mount point and barrel length (30px)
     const barrelLength = 30;
     const muzzleX =
       currentPlayer.root.position.x +
       currentPlayer.mountPoint.x +
-      Math.cos(radians) * barrelLength;
+      Math.cos(radians) * barrelLength * facing;
     // Positive angles should aim upward (negative y). Subtract the sin component to move the muzzle above the body.
     const muzzleY =
       currentPlayer.root.position.y +

@@ -34,8 +34,10 @@ export default class Player {
   /** Dimensions used to compute placement of the graphics. */
   width: number;
   height: number;
+  /** Direction the unit faces: +1 => right, -1 => left. */
+  facing: 1 | -1;
 
-  constructor(app: PIXI.Application, engine: Matter.Engine, unit: Unit) {
+  constructor(app: PIXI.Application, engine: Matter.Engine, unit: Unit, opts?: { x?: number; y?: number; facing?: 1 | -1 }) {
     this.app = app;
     this.engine = engine;
     this.unit = unit;
@@ -128,8 +130,11 @@ export default class Player {
     this.root.addChild(this.healthBarFill);
     this.updateHealthBar();
 
-    // Set initial position randomly along the x-axis and above the terrain.
-    this.root.position.set(Math.random() * (app.renderer.width - width) + width / 2, 200);
+    // Set initial position (defaults if not provided)
+    const startX = opts?.x ?? Math.random() * (app.renderer.width - width) + width / 2;
+    const startY = opts?.y ?? 200;
+    this.root.position.set(startX, startY);
+    this.facing = opts?.facing ?? 1;
     this.app.stage.addChild(this.root);
 
     // Create the physics body. Use a rectangle for all shapes for simplicity.
@@ -149,8 +154,8 @@ export default class Player {
    */
   updateWeaponAngle(angle: number) {
     const radians = (angle * Math.PI) / 180;
-    // Rotate weapon so that 0 degrees points right and 90 degrees points up.
-    this.weaponGraphics.rotation = -radians;
+    // Facing right: 0deg => right; Facing left: 0deg => left (pi rad)
+    this.weaponGraphics.rotation = this.facing === 1 ? -radians : -(Math.PI - radians);
   }
 
   /** Visually emphasise the active player's weapon. */
